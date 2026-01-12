@@ -9,10 +9,9 @@ export const sliceImage = (imageElement, options = {}) => {
             marginTop = 0,    // Top offset (ignoring header/padding)
             marginLeft = 0,   // Left offset
             gap = 0,          // Gap between stickers
+            cols = 4,         // Columns
+            rows = 3          // Rows
         } = options;
-
-        const cols = 4;
-        const rows = 3;
 
         // Calculate usable area
         const totalW = imageElement.width;

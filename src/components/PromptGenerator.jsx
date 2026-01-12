@@ -6,13 +6,35 @@ import { PROMPT_THEMES, PROMPT_STYLES } from '../utils/promptData';
 const PromptGenerator = () => {
     const [activeTheme, setActiveTheme] = useState('daily');
     const [activeStyle, setActiveStyle] = useState('qversion');
+
+    // Custom Inputs
+    const [customTheme, setCustomTheme] = useState('');
+    const [customStyle, setCustomStyle] = useState('');
+
     const [generatedPrompt, setGeneratedPrompt] = useState('');
     const [copied, setCopied] = useState(false);
 
-    // Generate prompt when selections change
-    useEffect(() => {
-        const theme = PROMPT_THEMES[activeTheme];
-        const style = PROMPT_STYLES[activeStyle];
+    const handleGenerate = () => {
+        let themeData = { texts: '', emotions: '', actions: '' };
+        let styleDesc = '';
+
+        // Get Theme Data
+        if (activeTheme === 'custom') {
+            themeData = {
+                texts: customTheme,
+                emotions: 'Custom Expressions',
+                actions: 'Custom Actions based on input'
+            };
+        } else {
+            themeData = PROMPT_THEMES[activeTheme];
+        }
+
+        // Get Style Data
+        if (activeStyle === 'custom') {
+            styleDesc = customStyle;
+        } else {
+            styleDesc = PROMPT_STYLES[activeStyle].desc;
+        }
 
         const promptText = `✅ 12 Sticker Set | Prompt Suggestion
 Please generate a 12-grid sticker set based on the character in the attached image.
@@ -21,7 +43,7 @@ Do NOT use emoji.
 [Character & Style]
 Consistency: Must strictly maintain the character's hair, clothes, facial features, and overall appearance.
 Composition: "Character + Text" only. No background scenes.
-Art Style: 【${style.desc}】
+Art Style: 【${styleDesc}】
 Sticker Style: Character and text must have a thick WHITE BORDER. Background must be pure GREEN (#00FF00).
 
 [Layout & Specs]
@@ -33,21 +55,21 @@ Angles: Mix of full body and half body. Include front, side, and high angles.
 
 [Text Design]
 Language: 【Traditional Chinese (Taiwan)】
-Text Content: 【${theme.texts}】
+Text Content: 【${themeData.texts}】
 Font Style: Cute Q-version font, colorful, readable. 
 IMPORTANT: DO NOT use Green or Black for text colors (causes removal issues). Use Red, Blue, Purple, Orange, etc.
 Text Size: Approx 1/3 of the sticker. Text can overlap non-essential parts of clothing but NOT the face.
 
 [Expressions & Actions]
-Expressions: Exaggerated and rich: 【${theme.emotions}】
-Actions: Match the text context: 【${theme.actions}】
+Expressions: Exaggerated and rich: 【${themeData.emotions}】
+Actions: Match the text context: 【${themeData.actions}】
 Requirement: All 12 stickers must have DIFFERENT actions and expressions.
 
 [Output Format]
 One single image containing 4x3 stickers. Background #00FF00. Thick white border around everything.`;
 
         setGeneratedPrompt(promptText);
-    }, [activeTheme, activeStyle]);
+    };
 
     const handleCopy = () => {
         navigator.clipboard.writeText(generatedPrompt).then(() => {
@@ -76,10 +98,21 @@ One single image containing 4x3 stickers. Background #00FF00. Thick white border
                             {value.label}
                         </option>
                     ))}
+                    <option value="custom">Custom (自定義)</option>
                 </select>
-                <div className="mt-2 text-xs text-slate-500 line-clamp-2">
-                    {PROMPT_THEMES[activeTheme].texts}
-                </div>
+
+                {activeTheme === 'custom' ? (
+                    <textarea
+                        value={customTheme}
+                        onChange={(e) => setCustomTheme(e.target.value)}
+                        placeholder="Enter theme details, texts, emotions..."
+                        className="mt-2 w-full h-24 bg-slate-800 border border-slate-700 text-slate-200 rounded-lg p-2.5 text-xs resize-none focus:ring-1 focus:ring-line-green outline-none"
+                    />
+                ) : (
+                    <div className="mt-2 text-xs text-slate-500 line-clamp-2">
+                        {PROMPT_THEMES[activeTheme].texts}
+                    </div>
+                )}
             </div>
 
             {/* Style Selection */}
@@ -95,16 +128,36 @@ One single image containing 4x3 stickers. Background #00FF00. Thick white border
                             {value.label}
                         </option>
                     ))}
+                    <option value="custom">Custom (自定義)</option>
                 </select>
-                <div className="mt-2 text-xs text-slate-500">
-                    {PROMPT_STYLES[activeStyle].desc}
-                </div>
+
+                {activeStyle === 'custom' ? (
+                    <textarea
+                        value={customStyle}
+                        onChange={(e) => setCustomStyle(e.target.value)}
+                        placeholder="Enter art style description..."
+                        className="mt-2 w-full h-20 bg-slate-800 border border-slate-700 text-slate-200 rounded-lg p-2.5 text-xs resize-none focus:ring-1 focus:ring-line-green outline-none"
+                    />
+                ) : (
+                    <div className="mt-2 text-xs text-slate-500">
+                        {PROMPT_STYLES[activeStyle].desc}
+                    </div>
+                )}
             </div>
+
+            {/* Generate Button */}
+            <button
+                onClick={handleGenerate}
+                className="mb-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-lg"
+            >
+                <Sparkles className="w-4 h-4" />
+                Generate Prompt (產生)
+            </button>
 
             {/* Generated Prompt Output */}
             <div className="flex-1 flex flex-col min-h-0">
                 <label className="block text-sm font-medium text-slate-400 mb-2">Generated Prompt (生成結果)</label>
-                <div className="relative flex-1 bg-slate-950 rounded-lg border border-slate-800 p-3 overflow-hidden group">
+                <div className="relative h-[400px] bg-slate-950 rounded-lg border border-slate-800 p-3 overflow-hidden group">
                     <textarea
                         readOnly
                         value={generatedPrompt}
@@ -119,8 +172,8 @@ One single image containing 4x3 stickers. Background #00FF00. Thick white border
             <button
                 onClick={handleCopy}
                 className={`mt-4 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold transition-all duration-200 ${copied
-                        ? 'bg-green-500/10 text-green-500 border border-green-500/50'
-                        : 'bg-line-green hover:bg-green-600 text-white shadow-lg shadow-line-green/20 hover:shadow-line-green/30'
+                    ? 'bg-green-500/10 text-green-500 border border-green-500/50'
+                    : 'bg-line-green hover:bg-green-600 text-white shadow-lg shadow-line-green/20 hover:shadow-line-green/30'
                     }`}
             >
                 {copied ? (

@@ -18,13 +18,16 @@ function App() {
 
   // Settings State
   const [settings, setSettings] = useState({
-    autoRemoveBg: true,
+    autoRemoveBg: true, // Always true now
     targetColor: '#00ff00',
     tolerance: 15,
     smoothness: 5,
     despill: true,
+    edgeErosion: 0,
     gap: 0,
-    marginTop: 0
+    marginTop: 0,
+    cols: 4,
+    rows: 3
   });
 
   const workerRef = useRef(null);
@@ -87,17 +90,22 @@ function App() {
   const performSlicing = async (img, gap, marginTop, currentHex, currentSettings) => {
     setIsProcessing(true);
     try {
-      const slices = await sliceImage(img, { gap, marginTop });
+      const slices = await sliceImage(img, {
+        gap,
+        marginTop,
+        cols: currentSettings.cols,
+        rows: currentSettings.rows
+      });
       setSlicedImages(slices);
 
       // If Auto Remove is OFF, we show raw slices.
       // If ON, we set them to processedImages but then trigger worker to overwrite.
       setProcessedImages(slices);
 
-      if (currentSettings.autoRemoveBg) {
-        // Pass the *latest* settings explicitly
-        triggerBatchProcessing(slices, { ...currentSettings, targetColor: currentHex });
-      }
+      setProcessedImages(slices);
+
+      // Always trigger background removal
+      triggerBatchProcessing(slices, { ...currentSettings, targetColor: currentHex });
     } catch (error) {
       console.error("Processing failed", error);
     } finally {
@@ -117,7 +125,8 @@ function App() {
           targetColor: currentSettings.targetColor,
           tolerance: currentSettings.tolerance,
           smoothness: currentSettings.smoothness,
-          despill: currentSettings.despill
+          despill: currentSettings.despill,
+          edgeErosion: currentSettings.edgeErosion
         }, [bitmap]);
       });
     });
@@ -135,13 +144,39 @@ function App() {
         performSlicing(originalImage, newSettings.gap, newSettings.marginTop, newSettings.targetColor, newSettings);
       } else {
         // Just Re-process Background (No re-slice needed)
-        if (!newSettings.autoRemoveBg) {
-          setProcessedImages(slicedImages);
-        } else {
-          triggerBatchProcessing(slicedImages, newSettings);
-        }
+        triggerBatchProcessing(slicedImages, newSettings);
       }
     }
+  };
+
+  // Handle Batch Updates (e.g., Grid Change)
+  const updateSettings = (newPartialSettings) => {
+    const newSettings = { ...settings, ...newPartialSettings };
+    setSettings(newSettings);
+
+    if (originalImage) {
+      // If Grid or Slicing params changed, re-slice
+      if ('cols' in newPartialSettings || 'rows' in newPartialSettings || 'gap' in newPartialSettings || 'marginTop' in newPartialSettings) {
+        performSlicing(originalImage, newSettings.gap, newSettings.marginTop, newSettings.targetColor, newSettings);
+      } else {
+        // Just Re-process Background
+        triggerBatchProcessing(slicedImages, newSettings);
+      }
+    }
+  };
+
+
+
+  // --- Eyedropper Logic ---
+  const [isPickingColor, setIsPickingColor] = useState(false);
+
+  const togglePicker = () => {
+    setIsPickingColor(!isPickingColor);
+  };
+
+  const handleColorPick = (hex) => {
+    setIsPickingColor(false);
+    handleSettingChange('targetColor', hex);
   };
 
   return (
@@ -160,8 +195,18 @@ function App() {
 
           {slicedImages.length > 0 && (
             <>
-              <SettingsPanel settings={settings} onSettingChange={handleSettingChange} />
-              <StickerGrid images={processedImages} />
+              <SettingsPanel
+                settings={settings}
+                onSettingChange={handleSettingChange}
+                updateSettings={updateSettings}
+                isPickingColor={isPickingColor}
+                onTogglePicker={togglePicker}
+              />
+              <StickerGrid
+                images={processedImages}
+                isPickingColor={isPickingColor}
+                onColorPick={handleColorPick}
+              />
             </>
           )}
         </div>

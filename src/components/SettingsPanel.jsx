@@ -2,7 +2,21 @@
 import React from 'react';
 import { Settings, Sliders, Droplet, Palette, Grid, Scissors } from 'lucide-react';
 
-const SettingsPanel = ({ settings, onSettingChange }) => {
+const SettingsPanel = ({ settings, onSettingChange, updateSettings, isPickingColor, onTogglePicker }) => {
+    // Local state for Grid Inputs to avoid triggering re-slice on every keystroke
+    const [localGrid, setLocalGrid] = React.useState({ cols: settings.cols || 4, rows: settings.rows || 3 });
+
+    // Sync local state when settings change externally (e.g. reset)
+    React.useEffect(() => {
+        setLocalGrid({ cols: settings.cols || 4, rows: settings.rows || 3 });
+    }, [settings.cols, settings.rows]);
+
+    const handleGridApply = () => {
+        if (updateSettings) {
+            updateSettings({ cols: localGrid.cols, rows: localGrid.rows });
+        }
+    };
+
     if (!settings) return null;
 
     return (
@@ -16,6 +30,45 @@ const SettingsPanel = ({ settings, onSettingChange }) => {
             <div className="mb-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
                 <div className="flex items-center gap-2 mb-4 text-slate-300">
                     <Grid className="w-4 h-4" />
+                    <h3 className="text-sm font-bold">Grid Layout (格狀設定)</h3>
+                </div>
+                {/* Columns & Rows Input */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-1">
+                        <label className="text-xs font-medium text-slate-400">Columns (直列)</label>
+                        <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={localGrid.cols}
+                            onChange={(e) => setLocalGrid(prev => ({ ...prev, cols: parseInt(e.target.value) || 1 }))}
+                            className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-line-green outline-none"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-xs font-medium text-slate-400">Rows (橫排)</label>
+                        <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={localGrid.rows}
+                            onChange={(e) => setLocalGrid(prev => ({ ...prev, rows: parseInt(e.target.value) || 1 }))}
+                            className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-line-green outline-none"
+                        />
+                    </div>
+                </div>
+                {/* Apply Grid Change Button */}
+                <div className="mb-6">
+                    <button
+                        onClick={handleGridApply}
+                        className="w-full py-1.5 px-3 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded border border-slate-600 transition-colors"
+                    >
+                        Apply Change (變更格數)
+                    </button>
+                </div>
+
+                <div className="flex items-center gap-2 mb-4 text-slate-300 border-t border-slate-700/50 pt-4">
+                    <Scissors className="w-4 h-4" />
                     <h3 className="text-sm font-bold">Slicing Adjustments (切片微調)</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -53,18 +106,7 @@ const SettingsPanel = ({ settings, onSettingChange }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Auto Remove BG Toggle */}
-                <div className="space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={settings.autoRemoveBg}
-                            onChange={(e) => onSettingChange('autoRemoveBg', e.target.checked)}
-                            className="w-4 h-4 rounded border-slate-600 text-line-green focus:ring-line-green bg-slate-800"
-                        />
-                        <span className="text-sm font-medium text-slate-200">Auto Remove Background</span>
-                    </label>
-                </div>
+
 
                 {/* Target Color Picker */}
                 <div className="space-y-2">
@@ -78,10 +120,22 @@ const SettingsPanel = ({ settings, onSettingChange }) => {
                         <input
                             type="color"
                             value={settings.targetColor}
-                            disabled={!settings.autoRemoveBg}
+                            disabled={isPickingColor}
                             onChange={(e) => onSettingChange('targetColor', e.target.value)}
-                            className="w-full h-8 bg-slate-800 rounded border border-slate-600 cursor-pointer disabled:opacity-50"
+                            className="w-10 h-8 bg-slate-800 rounded border border-slate-600 cursor-pointer disabled:opacity-50"
                         />
+                        <button
+                            onClick={onTogglePicker}
+                            className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded border text-xs font-bold transition-all
+                                ${isPickingColor
+                                    ? 'bg-line-green text-black border-line-green animate-pulse'
+                                    : 'bg-slate-700 text-slate-200 border-slate-600 hover:bg-slate-600'}
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                            `}
+                        >
+                            <Droplet className="w-3 h-3" />
+                            {isPickingColor ? 'Picking...' : 'Pick Color (吸管)'}
+                        </button>
                     </div>
                 </div>
 
@@ -96,7 +150,6 @@ const SettingsPanel = ({ settings, onSettingChange }) => {
                         min="0"
                         max="100"
                         value={settings.tolerance}
-                        disabled={!settings.autoRemoveBg}
                         onChange={(e) => onSettingChange('tolerance', parseInt(e.target.value))}
                         className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-line-green disabled:opacity-50"
                     />
@@ -113,8 +166,23 @@ const SettingsPanel = ({ settings, onSettingChange }) => {
                         min="0"
                         max="50"
                         value={settings.smoothness}
-                        disabled={!settings.autoRemoveBg}
                         onChange={(e) => onSettingChange('smoothness', parseInt(e.target.value))}
+                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-line-green disabled:opacity-50"
+                    />
+                </div>
+
+                {/* Edge Erosion */}
+                <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                        <label className="font-medium text-slate-200">Edge Erosion (邊緣收縮)</label>
+                        <span className="text-line-green">{settings.edgeErosion} px</span>
+                    </div>
+                    <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        value={settings.edgeErosion}
+                        onChange={(e) => onSettingChange('edgeErosion', parseInt(e.target.value))}
                         className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-line-green disabled:opacity-50"
                     />
                 </div>
@@ -125,7 +193,6 @@ const SettingsPanel = ({ settings, onSettingChange }) => {
                         <input
                             type="checkbox"
                             checked={settings.despill}
-                            disabled={!settings.autoRemoveBg}
                             onChange={(e) => onSettingChange('despill', e.target.checked)}
                             className="w-4 h-4 rounded border-slate-600 text-line-green focus:ring-line-green bg-slate-800 disabled:opacity-50"
                         />
