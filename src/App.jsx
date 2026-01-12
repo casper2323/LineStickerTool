@@ -5,6 +5,7 @@ import PromptGenerator from './components/PromptGenerator';
 import ImageUploader from './components/ImageUploader';
 import StickerGrid from './components/StickerGrid';
 import SettingsPanel from './components/SettingsPanel';
+import ColorPickerOverlay from './components/ColorPickerOverlay';
 import { sliceImage } from './utils/canvasUtils';
 
 // Import worker
@@ -193,13 +194,22 @@ function App() {
               />
               <StickerGrid
                 images={processedImages}
-                isPickingColor={isPickingColor}
+                isPickingColor={false}  // Disable grid picking since we use Overlay
                 onColorPick={handleColorPick}
               />
             </>
           )}
         </div>
       </div>
+
+      {/* Color Picker Overlay */}
+      {isPickingColor && originalImage && (
+        <ColorPickerOverlay
+          imageSrc={originalImage.src}
+          onColorPick={handleColorPick}
+          onCancel={() => setIsPickingColor(false)}
+        />
+      )}
     </Layout>
   );
 }
