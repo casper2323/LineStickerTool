@@ -65,24 +65,13 @@ function App() {
       setOriginalImage(img);
       setIsProcessing(true);
 
-      // Auto-detect background color logic (Keep it, but user can override)
-      const canvas = document.createElement('canvas');
-      canvas.width = 1;
-      canvas.height = 1;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, 1, 1, 0, 0, 1, 1);
-      const p = ctx.getImageData(0, 0, 1, 1).data;
-      const hex = "#" + ("000000" + ((p[0] << 16) | (p[1] << 8) | p[2]).toString(16)).slice(-6);
+      // Disabled auto-detect per user request (Default to #00ff00 or current setting)
+      // const canvas = document.createElement('canvas');
+      // canvas.width = 1;
+      // ... 
 
-      // We update the target color, BUT we keep other settings as is (or reset?)
-      // Use logical defaults if first time
-      setSettings(prev => ({
-        ...prev,
-        targetColor: hex
-      }));
-
-      // Initial Slice
-      performSlicing(img, settings.gap, settings.marginTop, hex, settings);
+      // Just use the current settings
+      performSlicing(img, settings.gap, settings.marginTop, settings.targetColor, settings);
     };
   };
 

@@ -78,51 +78,66 @@ self.onmessage = function (e) {
         data[i + 3] = alpha; // Set Alpha
     }
 
-    // --- Edge Erosion (Post-Processing) ---
-    // If edgeErosion > 0, we shrink the opaque area to eat away halo.
+    // --- Edge Erosion (Expand Transparency) ---
+    // User Request: "Search for outermost edge of transparent area, expand, then delete pixels"
+    // Logic: Identify "Transparent" pixels, then DILATE that region.
+
     if (edgeErosion > 0) {
-        // Clone alpha channel to avoid modifying while reading
-        // We only need the alpha channel, one byte per pixel
-        const alphaChannel = new Uint8Array(w * h);
+        const radius = edgeErosion;
+        const w = imageBitmap.width;
+        const h = imageBitmap.height;
+
+        // 1. Create Mask of currently Transparent pixels
+        // We treat anything with Alpha < 128 as "Transparent enough to start eroding from"
+        // This ensures we catch the edge of the antialiased cut.
+        const isTransparentMask = new Uint8Array(w * h);
+
         for (let i = 0; i < w * h; i++) {
-            alphaChannel[i] = data[i * 4 + 3];
+            if (data[i * 4 + 3] < 128) {
+                isTransparentMask[i] = 1;
+            }
         }
 
-        // Apply erosion
-        // For each pixel, find the minimum alpha in the neighborhood
-        const radius = edgeErosion;
+        // 2. Dilate the Transparency Mask (Expand the Holes)
+        const dilatedMask = new Uint8Array(w * h);
 
         for (let y = 0; y < h; y++) {
             for (let x = 0; x < w; x++) {
-                const idx = (y * w + x) * 4;
-                const currentAlpha = alphaChannel[y * w + x];
+                const idx = y * w + x;
 
-                if (currentAlpha > 0) {
-                    // Optimization: Only check neighbors if current pixel is not fully transparent
-                    // If any neighbor within radius has lower alpha, take that lower alpha (Erosion)
-                    let minAlpha = currentAlpha;
+                // If already transparent, keep it
+                if (isTransparentMask[idx] === 1) {
+                    dilatedMask[idx] = 1;
+                    continue;
+                }
 
-                    // Check neighbors
-                    // A simple box kernel is faster than circular
-                    for (let dy = -radius; dy <= radius; dy++) {
-                        for (let dx = -radius; dx <= radius; dx++) {
-                            const ny = y + dy;
-                            const nx = x + dx;
-
-                            if (ny >= 0 && ny < h && nx >= 0 && nx < w) {
-                                const nAlpha = alphaChannel[ny * w + nx];
-                                if (nAlpha < minAlpha) {
-                                    minAlpha = nAlpha;
-                                }
-                            } else {
-                                // If out of bounds, consider it transparent (or opaque? usually transparent for stickers)
-                                // Let's treat out-of-bounds as transparent (alpha 0)
-                                minAlpha = 0;
+                // If not transparent, check if a transparent pixel is nearby (within radius)
+                // If yes, this pixel gets eaten.
+                let isNearHole = false;
+                for (let dy = -radius; dy <= radius; dy++) {
+                    for (let dx = -radius; dx <= radius; dx++) {
+                        const ny = y + dy;
+                        const nx = x + dx;
+                        if (ny >= 0 && ny < h && nx >= 0 && nx < w) {
+                            if (isTransparentMask[ny * w + nx] === 1) {
+                                isNearHole = true;
+                                break;
                             }
                         }
                     }
-                    data[idx + 3] = minAlpha;
+                    if (isNearHole) break;
                 }
+
+                if (isNearHole) {
+                    dilatedMask[idx] = 1;
+                }
+            }
+        }
+
+        // 3. Apply Mask - Hard Cut
+        for (let i = 0; i < w * h; i++) {
+            if (dilatedMask[i] === 1) {
+                data[i * 4 + 3] = 0; // Forcefully clear
             }
         }
     }
