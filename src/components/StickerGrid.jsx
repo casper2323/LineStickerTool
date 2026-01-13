@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Download, Image as ImageIcon, Archive, PlusCircle } from 'lucide-react';
 import JSZip from 'jszip';
 
-const StickerGrid = ({ images = [], isPickingColor = false, onColorPick, onCollect }) => {
+const StickerGrid = ({ images = [], isPickingColor = false, onColorPick, onCollect, collectMode, setCollectMode }) => {
     const [isZipping, setIsZipping] = useState(false);
 
     // Native Download Helper
@@ -94,14 +94,50 @@ const StickerGrid = ({ images = [], isPickingColor = false, onColorPick, onColle
 
     return (
         <div className="panel-bg p-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between mb-4 gap-4">
                 <div className="flex items-center gap-2">
                     <ImageIcon className="w-5 h-5 text-line-green" />
                     <h2 className="text-lg font-bold text-white">Stickers Result (結果)</h2>
                 </div>
 
+                {/* Collection Mode Switch */}
+                <div className="flex items-center gap-4 bg-slate-800/50 p-1.5 rounded-lg border border-slate-700/50">
+                    <label className="flex items-center gap-2 cursor-pointer px-3 py-1 rounded hover:bg-slate-700/50 transition-colors">
+                        <input
+                            type="radio"
+                            name="collectMode"
+                            value="stickers"
+                            checked={collectMode === 'stickers'}
+                            onChange={(e) => setCollectMode(e.target.value)}
+                            className="w-4 h-4 text-line-green bg-slate-800 border-slate-600 focus:ring-line-green"
+                        />
+                        <span className={`text-sm font-medium ${collectMode === 'stickers' ? 'text-white' : 'text-slate-400'}`}>貼圖圖片 (預設)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer px-3 py-1 rounded hover:bg-slate-700/50 transition-colors">
+                        <input
+                            type="radio"
+                            name="collectMode"
+                            value="main"
+                            checked={collectMode === 'main'}
+                            onChange={(e) => setCollectMode(e.target.value)}
+                            className="w-4 h-4 text-line-green bg-slate-800 border-slate-600 focus:ring-line-green"
+                        />
+                        <span className={`text-sm font-medium ${collectMode === 'main' ? 'text-white' : 'text-slate-400'}`}>主要圖片</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer px-3 py-1 rounded hover:bg-slate-700/50 transition-colors">
+                        <input
+                            type="radio"
+                            name="collectMode"
+                            value="tab"
+                            checked={collectMode === 'tab'}
+                            onChange={(e) => setCollectMode(e.target.value)}
+                            className="w-4 h-4 text-line-green bg-slate-800 border-slate-600 focus:ring-line-green"
+                        />
+                        <span className={`text-sm font-medium ${collectMode === 'tab' ? 'text-white' : 'text-slate-400'}`}>標籤圖片</span>
+                    </label>
+                </div>
+
                 <div className="flex items-center gap-4">
-                    <span className="text-sm text-slate-500 hidden sm:inline">{images.length} stickers generated</span>
                     <button
                         onClick={handleDownloadAll}
                         disabled={isZipping}

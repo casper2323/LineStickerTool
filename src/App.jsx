@@ -21,6 +21,13 @@ function App() {
   // Create 40 slots for collection
   const [collection, setCollection] = useState(Array(40).fill(null));
 
+  // Special Slots
+  const [mainImage, setMainImage] = useState(null);
+  const [tabImage, setTabImage] = useState(null);
+
+  // Collection Mode
+  const [collectMode, setCollectMode] = useState('stickers'); // 'stickers' | 'main' | 'tab'
+
   // Settings State
   const [settings, setSettings] = useState({
     autoRemoveBg: true, // Always true now
@@ -175,17 +182,24 @@ function App() {
 
   // --- Collection Logic ---
   const handleCollect = (sticker) => {
-    setCollection(prev => {
-      // Find first empty slot
-      const emptyIndex = prev.findIndex(item => item === null);
-      if (emptyIndex === -1) {
-        alert("Collection is full! Please delete some stickers first.");
-        return prev;
-      }
-      const newCollection = [...prev];
-      newCollection[emptyIndex] = sticker;
-      return newCollection;
-    });
+    if (collectMode === 'main') {
+      setMainImage(sticker);
+    } else if (collectMode === 'tab') {
+      setTabImage(sticker);
+    } else {
+      // Default: Add to list
+      setCollection(prev => {
+        // Find first empty slot
+        const emptyIndex = prev.findIndex(item => item === null);
+        if (emptyIndex === -1) {
+          alert("Collection is full! Please delete some stickers first.");
+          return prev;
+        }
+        const newCollection = [...prev];
+        newCollection[emptyIndex] = sticker;
+        return newCollection;
+      });
+    }
   };
 
   const handleDeleteFromCollection = (index) => {
@@ -199,6 +213,8 @@ function App() {
   const handleClearCollection = () => {
     if (window.confirm("Are you sure you want to clear the entire collection?")) {
       setCollection(Array(40).fill(null));
+      setMainImage(null);
+      setTabImage(null);
     }
   };
 
@@ -230,11 +246,17 @@ function App() {
                 isPickingColor={false}  // Disable grid picking since we use Overlay
                 onColorPick={handleColorPick}
                 onCollect={handleCollect}
+                collectMode={collectMode}
+                setCollectMode={setCollectMode}
               />
               <StickerCollection
                 collection={collection}
                 onDelete={handleDeleteFromCollection}
                 onClearAll={handleClearCollection}
+                mainImage={mainImage}
+                setMainImage={setMainImage}
+                tabImage={tabImage}
+                setTabImage={setTabImage}
               />
             </>
           )}
