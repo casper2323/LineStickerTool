@@ -26,7 +26,7 @@ echo [2/3] Committing...
 git commit -m "%msg%"
 
 echo [3/3] Pushing to main...
-git push origin main
+git push origin HEAD
 
 echo.
 echo ===================================================

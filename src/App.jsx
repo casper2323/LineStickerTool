@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import PromptGenerator from './components/PromptGenerator';
 import ImageUploader from './components/ImageUploader';
 import StickerGrid from './components/StickerGrid';
+import StickerCollection from './components/StickerCollection';
 import SettingsPanel from './components/SettingsPanel';
 import ColorPickerOverlay from './components/ColorPickerOverlay';
 import { sliceImage } from './utils/canvasUtils';
@@ -16,6 +17,9 @@ function App() {
   const [slicedImages, setSlicedImages] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processedImages, setProcessedImages] = useState([]);
+
+  // Create 40 slots for collection
+  const [collection, setCollection] = useState(Array(40).fill(null));
 
   // Settings State
   const [settings, setSettings] = useState({
@@ -169,6 +173,35 @@ function App() {
     handleSettingChange('targetColor', hex);
   };
 
+  // --- Collection Logic ---
+  const handleCollect = (sticker) => {
+    setCollection(prev => {
+      // Find first empty slot
+      const emptyIndex = prev.findIndex(item => item === null);
+      if (emptyIndex === -1) {
+        alert("Collection is full! Please delete some stickers first.");
+        return prev;
+      }
+      const newCollection = [...prev];
+      newCollection[emptyIndex] = sticker;
+      return newCollection;
+    });
+  };
+
+  const handleDeleteFromCollection = (index) => {
+    setCollection(prev => {
+      const newCollection = [...prev];
+      newCollection[index] = null;
+      return newCollection;
+    });
+  };
+
+  const handleClearCollection = () => {
+    if (window.confirm("Are you sure you want to clear the entire collection?")) {
+      setCollection(Array(40).fill(null));
+    }
+  };
+
   return (
     <Layout>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -196,6 +229,12 @@ function App() {
                 images={processedImages}
                 isPickingColor={false}  // Disable grid picking since we use Overlay
                 onColorPick={handleColorPick}
+                onCollect={handleCollect}
+              />
+              <StickerCollection
+                collection={collection}
+                onDelete={handleDeleteFromCollection}
+                onClearAll={handleClearCollection}
               />
             </>
           )}

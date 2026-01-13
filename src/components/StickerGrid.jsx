@@ -1,29 +1,10 @@
 
 import React, { useState } from 'react';
-import { Download, Image as ImageIcon, Archive } from 'lucide-react';
+import { Download, Image as ImageIcon, Archive, PlusCircle } from 'lucide-react';
 import JSZip from 'jszip';
 
-const StickerGrid = ({ images = [], isPickingColor = false, onColorPick }) => {
+const StickerGrid = ({ images = [], isPickingColor = false, onColorPick, onCollect }) => {
     const [isZipping, setIsZipping] = useState(false);
-    const [customNames, setCustomNames] = useState({});
-
-    // Initialize custom names when images change
-    React.useEffect(() => {
-        if (images && images.length > 0) {
-            const initialNames = {};
-            images.forEach(img => {
-                initialNames[img.id] = String(img.id).padStart(2, '0');
-            });
-            setCustomNames(initialNames);
-        }
-    }, [images]);
-
-    const handleNameChange = (id, newName) => {
-        setCustomNames(prev => ({
-            ...prev,
-            [id]: newName
-        }));
-    };
 
     // Native Download Helper
     // 使用原生 DOM 方式觸發下載，解決檔名亂碼或無效問題
@@ -39,8 +20,7 @@ const StickerGrid = ({ images = [], isPickingColor = false, onColorPick }) => {
 
     // Individual Download
     const handleDownload = (dataUrl, id) => {
-        const name = customNames[id] || String(id).padStart(2, '0');
-        const fileName = name + '.png';
+        const fileName = String(id).padStart(2, '0') + '.png';
         triggerDownload(dataUrl, fileName);
     };
 
@@ -54,15 +34,14 @@ const StickerGrid = ({ images = [], isPickingColor = false, onColorPick }) => {
 
         images.forEach((img) => {
             const base64Data = img.dataUrl.split(',')[1];
-            const name = customNames[img.id] || String(img.id).padStart(2, '0');
-            const fileName = name + '.png';
+            const fileName = String(img.id).padStart(2, '0') + '.png';
             folder.file(fileName, base64Data, { base64: true });
         });
 
         try {
             const content = await zip.generateAsync({ type: "blob" });
             const url = URL.createObjectURL(content);
-            triggerDownload(url, "line_stickers_set.zip");
+            triggerDownload(url, "stickers_result.zip");
             setTimeout(() => URL.revokeObjectURL(url), 1000);
         } catch (err) {
             console.error("Failed to zip:", err);
@@ -165,15 +144,17 @@ const StickerGrid = ({ images = [], isPickingColor = false, onColorPick }) => {
                             </div>
                         )}
 
-                        <div className="absolute top-2 left-2 right-2">
-                            <input
-                                type="text"
-                                value={customNames[img.id] || ''}
-                                onChange={(e) => handleNameChange(img.id, e.target.value)}
-                                onClick={(e) => e.stopPropagation()} // Prevent triggering eyedropper
-                                placeholder={String(img.id).padStart(2, '0')}
-                                className="w-full bg-black/50 text-white text-xs px-2 py-1 rounded border border-transparent focus:border-line-green focus:bg-black/80 focus:outline-none transition-all text-center"
-                            />
+                        <div className="absolute top-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onCollect(img);
+                                }}
+                                className="w-full bg-line-green/90 hover:bg-line-green text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1 backdrop-blur-sm shadow-sm"
+                            >
+                                <PlusCircle className="w-3 h-3" />
+                                收錄 (Collect)
+                            </button>
                         </div>
                     </div>
                 ))}
