@@ -99,3 +99,31 @@ export const sliceImage = (imageElement, options = {}) => {
         resolve(pieces);
     });
 };
+
+export const resizeImage = (dataUrl, width, height) => {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            // Maintain aspect ratio or stretch?
+            // Requirement usually implies fitting into the box.
+            // But Line stickers usually require specific dimensions.
+            // Let's use "contain" fit to preserve aspect ratio, centering it.
+
+            // Calculate scale
+            const scale = Math.min(width / img.width, height / img.height);
+            const w = img.width * scale;
+            const h = img.height * scale;
+            const x = (width - w) / 2;
+            const y = (height - h) / 2;
+
+            ctx.drawImage(img, x, y, w, h);
+            resolve(canvas.toDataURL('image/png'));
+        };
+        img.src = dataUrl;
+    });
+};

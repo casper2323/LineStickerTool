@@ -157,7 +157,7 @@ One single image containing 4x3 stickers. Background #00FF00. Thick white border
             {/* Generated Prompt Output */}
             <div className="flex-1 flex flex-col min-h-0">
                 <label className="block text-sm font-medium text-slate-400 mb-2">Generated Prompt (生成結果)</label>
-                <div className="relative h-[400px] bg-slate-950 rounded-lg border border-slate-800 p-3 overflow-hidden group">
+                <div className="relative h-[300px] lg:h-[400px] bg-slate-950 rounded-lg border border-slate-800 p-3 overflow-hidden group">
                     <textarea
                         readOnly
                         value={generatedPrompt}

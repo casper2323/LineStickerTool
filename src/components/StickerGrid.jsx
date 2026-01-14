@@ -94,14 +94,14 @@ const StickerGrid = ({ images = [], isPickingColor = false, onColorPick, onColle
 
     return (
         <div className="panel-bg p-6">
-            <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between mb-4 gap-4">
-                <div className="flex items-center gap-2">
+            <div className="flex flex-col xl:flex-row items-center justify-between mb-4 gap-4">
+                <div className="flex items-center gap-2 w-full xl:w-auto justify-center xl:justify-start">
                     <ImageIcon className="w-5 h-5 text-line-green" />
                     <h2 className="text-lg font-bold text-white">Stickers Result (結果)</h2>
                 </div>
 
                 {/* Collection Mode Switch */}
-                <div className="flex items-center gap-4 bg-slate-800/50 p-1.5 rounded-lg border border-slate-700/50">
+                <div className="flex flex-wrap justify-center gap-4 bg-slate-800/50 p-1.5 rounded-lg border border-slate-700/50 w-full xl:w-auto">
                     <label className="flex items-center gap-2 cursor-pointer px-3 py-1 rounded hover:bg-slate-700/50 transition-colors">
                         <input
                             type="radio"
@@ -137,11 +137,11 @@ const StickerGrid = ({ images = [], isPickingColor = false, onColorPick, onColle
                     </label>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 w-full xl:w-auto justify-center xl:justify-end">
                     <button
                         onClick={handleDownloadAll}
                         disabled={isZipping}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-white transition-all
+                        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold text-white transition-all w-full xl:w-auto
                   ${isZipping
                                 ? 'bg-slate-700 cursor-not-allowed'
                                 : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg'}

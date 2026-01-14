@@ -7,7 +7,7 @@ import StickerGrid from './components/StickerGrid';
 import StickerCollection from './components/StickerCollection';
 import SettingsPanel from './components/SettingsPanel';
 import ColorPickerOverlay from './components/ColorPickerOverlay';
-import { sliceImage } from './utils/canvasUtils';
+import { sliceImage, resizeImage } from './utils/canvasUtils';
 
 // Import worker
 import WorkerScript from './workers/imageProcessor.js?worker&url';
@@ -41,6 +41,9 @@ function App() {
     cols: 4,
     rows: 3
   });
+
+  // Tab State
+  const [activeTab, setActiveTab] = useState('prompt'); // 'prompt' | 'editor'
 
   const workerRef = useRef(null);
 
@@ -181,13 +184,17 @@ function App() {
   };
 
   // --- Collection Logic ---
-  const handleCollect = (sticker) => {
+  const handleCollect = async (sticker) => {
     if (collectMode === 'main') {
-      setMainImage(sticker);
+      const resized = await resizeImage(sticker.dataUrl, 240, 240);
+      setMainImage({ ...sticker, dataUrl: resized });
     } else if (collectMode === 'tab') {
-      setTabImage(sticker);
+      const resized = await resizeImage(sticker.dataUrl, 96, 74);
+      setTabImage({ ...sticker, dataUrl: resized });
     } else {
       // Default: Add to list
+      const resized = await resizeImage(sticker.dataUrl, 370, 320);
+
       setCollection(prev => {
         // Find first empty slot
         const emptyIndex = prev.findIndex(item => item === null);
@@ -196,7 +203,7 @@ function App() {
           return prev;
         }
         const newCollection = [...prev];
-        newCollection[emptyIndex] = sticker;
+        newCollection[emptyIndex] = { ...sticker, dataUrl: resized };
         return newCollection;
       });
     }
@@ -220,46 +227,70 @@ function App() {
 
   return (
     <Layout>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      {/* Tab Navigation */}
+      <div className="flex justify-center border-b border-gray-700 mb-6">
+        <button
+          className={`px-6 py-3 font-medium text-sm transition-colors relative ${activeTab === 'prompt'
+            ? 'text-white border-b-2 border-primary-500'
+            : 'text-gray-400 hover:text-gray-200'
+            }`}
+          onClick={() => setActiveTab('prompt')}
+        >
+          Prompt Generator
+        </button>
+        <button
+          className={`px-6 py-3 font-medium text-sm transition-colors relative ${activeTab === 'editor'
+            ? 'text-white border-b-2 border-primary-500'
+            : 'text-gray-400 hover:text-gray-200'
+            }`}
+          onClick={() => setActiveTab('editor')}
+        >
+          Sticker Editor
+        </button>
+      </div>
+
+      <div className="space-y-6">
         {/* Left Sidebar: Prompt Generator */}
-        <div className="lg:col-span-4 h-full">
-          <div className="sticky top-24">
+        <div className={activeTab === 'prompt' ? 'block' : 'hidden'}>
+          <div className="max-w-4xl mx-auto">
             <PromptGenerator />
           </div>
         </div>
 
         {/* Right Content: Image Processing */}
-        <div className="lg:col-span-8 space-y-6">
-          <ImageUploader onUpload={handleImageUpload} isProcessing={isProcessing} />
+        <div className={activeTab === 'editor' ? 'block' : 'hidden'}>
+          <div className="space-y-6">
+            <ImageUploader onUpload={handleImageUpload} isProcessing={isProcessing} />
 
-          {slicedImages.length > 0 && (
-            <>
-              <SettingsPanel
-                settings={settings}
-                onSettingChange={handleSettingChange}
-                updateSettings={updateSettings}
-                isPickingColor={isPickingColor}
-                onTogglePicker={togglePicker}
-              />
-              <StickerGrid
-                images={processedImages}
-                isPickingColor={false}  // Disable grid picking since we use Overlay
-                onColorPick={handleColorPick}
-                onCollect={handleCollect}
-                collectMode={collectMode}
-                setCollectMode={setCollectMode}
-              />
-              <StickerCollection
-                collection={collection}
-                onDelete={handleDeleteFromCollection}
-                onClearAll={handleClearCollection}
-                mainImage={mainImage}
-                setMainImage={setMainImage}
-                tabImage={tabImage}
-                setTabImage={setTabImage}
-              />
-            </>
-          )}
+            {slicedImages.length > 0 && (
+              <>
+                <SettingsPanel
+                  settings={settings}
+                  onSettingChange={handleSettingChange}
+                  updateSettings={updateSettings}
+                  isPickingColor={isPickingColor}
+                  onTogglePicker={togglePicker}
+                />
+                <StickerGrid
+                  images={processedImages}
+                  isPickingColor={false}  // Disable grid picking since we use Overlay
+                  onColorPick={handleColorPick}
+                  onCollect={handleCollect}
+                  collectMode={collectMode}
+                  setCollectMode={setCollectMode}
+                />
+                <StickerCollection
+                  collection={collection}
+                  onDelete={handleDeleteFromCollection}
+                  onClearAll={handleClearCollection}
+                  mainImage={mainImage}
+                  setMainImage={setMainImage}
+                  tabImage={tabImage}
+                  setTabImage={setTabImage}
+                />
+              </>
+            )}
+          </div>
         </div>
       </div>
 

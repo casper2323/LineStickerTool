@@ -18,14 +18,7 @@ const Layout = ({ children }) => {
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        <a
-                            href="https://github.com/casper2323/LineStickerTool"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 hover:bg-slate-700 rounded-full transition-colors text-slate-400 hover:text-white"
-                        >
-                            <Github className="w-5 h-5" />
-                        </a>
+                        {/* GitHub Link Removed */}
                     </div>
                 </div>
             </header>
