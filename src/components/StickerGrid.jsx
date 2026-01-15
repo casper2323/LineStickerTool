@@ -106,23 +106,12 @@ const StickerGrid = ({ images = [], isPickingColor = false, onColorPick, onColle
                         <input
                             type="radio"
                             name="collectMode"
-                            value="stickers"
-                            checked={collectMode === 'stickers'}
+                            value="workspace"
+                            checked={collectMode === 'workspace'}
                             onChange={(e) => setCollectMode(e.target.value)}
                             className="w-4 h-4 text-line-green bg-slate-800 border-slate-600 focus:ring-line-green"
                         />
-                        <span className={`text-sm font-medium ${collectMode === 'stickers' ? 'text-white' : 'text-slate-400'}`}>貼圖圖片 (預設)</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer px-3 py-1 rounded hover:bg-slate-700/50 transition-colors">
-                        <input
-                            type="radio"
-                            name="collectMode"
-                            value="main"
-                            checked={collectMode === 'main'}
-                            onChange={(e) => setCollectMode(e.target.value)}
-                            className="w-4 h-4 text-line-green bg-slate-800 border-slate-600 focus:ring-line-green"
-                        />
-                        <span className={`text-sm font-medium ${collectMode === 'main' ? 'text-white' : 'text-slate-400'}`}>主要圖片</span>
+                        <span className={`text-sm font-medium ${collectMode === 'workspace' ? 'text-white' : 'text-slate-400'}`}>工作區 (預設)</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer px-3 py-1 rounded hover:bg-slate-700/50 transition-colors">
                         <input
