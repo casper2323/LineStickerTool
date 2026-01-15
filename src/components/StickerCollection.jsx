@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Trash2, Archive, Check } from 'lucide-react';
+import { Download, Trash2, Archive, Check, Play } from 'lucide-react';
 import JSZip from 'jszip';
 
 const StickerCollection = ({
@@ -10,12 +10,21 @@ const StickerCollection = ({
     mainImage,
     setMainImage,
     tabImage,
-    setTabImage
+    setTabImage,
+    limit = 40,
+    setLimit,
+    allowedCounts = [8, 16, 24, 32, 40]
 }) => {
     // collection is expected to be an array of length 40
     // elements are either null or { id, dataUrl, ... }
 
+    const [replayKeys, setReplayKeys] = useState({});
+
     const [isZipping, setIsZipping] = useState(false);
+
+    const handleReplay = (index) => {
+        setReplayKeys(prev => ({ ...prev, [index]: Date.now() }));
+    };
 
     // Native Download Helper
     const triggerDownload = (href, fileName) => {
@@ -37,7 +46,7 @@ const StickerCollection = ({
     };
 
     const handleDownloadAll = async () => {
-        const validStickers = collection.map((s, i) => ({ s, i })).filter(item => item.s !== null);
+        const validStickers = collection.slice(0, limit).map((s, i) => ({ s, i })).filter(item => item.s !== null);
         if (validStickers.length === 0 && !mainImage && !tabImage) return;
 
         setIsZipping(true);
@@ -161,9 +170,26 @@ const StickerCollection = ({
             </div>
 
             {/* 1. Sticker Collection Grid */}
-            <h3 className="text-sm font-bold text-slate-300 mb-2">貼圖圖片(8張、16張、24張、32張、40張)</h3>
+            <div className="flex items-center gap-4 mb-4">
+                <h3 className="text-sm font-bold text-slate-300">貼圖圖片數量:</h3>
+                <div className="flex gap-2">
+                    {allowedCounts.map(count => (
+                        <button
+                            key={count}
+                            onClick={() => setLimit && setLimit(count)}
+                            className={`px-3 py-1 text-xs font-bold rounded-full transition-colors ${limit === count
+                                ? 'bg-line-green text-white shadow-lg shadow-line-green/30'
+                                : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                                }`}
+                        >
+                            {count}張
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             <div className="grid grid-cols-4 gap-4 mb-8">
-                {collection.map((sticker, index) => {
+                {collection.slice(0, limit).map((sticker, index) => {
                     const slotNumber = String(index + 1).padStart(2, '0');
                     return (
                         <div key={index} className={`group relative bg-slate-900 rounded-lg border aspect-square flex items-center justify-center ${sticker ? 'border-line-green' : 'border-slate-800 border-dashed'}`}>
@@ -178,6 +204,7 @@ const StickerCollection = ({
                                 <>
                                     <div className="relative w-full h-full p-2 flex items-center justify-center bg-[url('https://media.discordapp.net/attachments/1097486820202811463/1105470788642570290/grid-bg.png')] bg-repeat overflow-hidden rounded">
                                         <img
+                                            key={replayKeys[index] || 'init'}
                                             src={sticker.dataUrl}
                                             alt={`Slot ${slotNumber}`}
                                             className="max-w-full max-h-full object-contain pointer-events-none"
@@ -189,18 +216,34 @@ const StickerCollection = ({
                                         {slotNumber}
                                     </div>
 
+                                    {/* APNG Indicator / Play Button */}
+                                    {sticker.isApng && (
+                                        <div className="absolute top-2 right-2">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleReplay(index);
+                                                }}
+                                                className="w-6 h-6 bg-green-500/90 hover:bg-green-400 text-white rounded-full flex items-center justify-center shadow-md transition-colors z-20 pointer-events-auto"
+                                                title="Replay Animation"
+                                            >
+                                                <Play className="w-3 h-3 fill-current ml-0.5" />
+                                            </button>
+                                        </div>
+                                    )}
+
                                     {/* Overlay Actions */}
-                                    <div className="absolute inset-x-2 bottom-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute inset-x-2 bottom-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                         <button
                                             onClick={() => handleDownload(index)}
-                                            className="flex-1 bg-slate-800/90 hover:bg-line-green/90 text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1 backdrop-blur-sm"
+                                            className="flex-1 bg-slate-800/90 hover:bg-line-green/90 text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1 backdrop-blur-sm pointer-events-auto"
                                             title="Download"
                                         >
                                             <Download className="w-3 h-3" />
                                         </button>
                                         <button
                                             onClick={() => onDelete(index)}
-                                            className="flex-1 bg-slate-800/90 hover:bg-red-500/90 text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1 backdrop-blur-sm"
+                                            className="flex-1 bg-slate-800/90 hover:bg-red-500/90 text-white text-xs font-bold py-1.5 rounded flex items-center justify-center gap-1 backdrop-blur-sm pointer-events-auto"
                                             title="Delete"
                                         >
                                             <Trash2 className="w-3 h-3" />

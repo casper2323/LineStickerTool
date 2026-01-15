@@ -1,3 +1,4 @@
+import UPNG from 'upng-js';
 
 // Utility to slice a 4x3 grid image into 12 individual pieces
 // 用於將 4x3 格狀圖片切割成 12 張獨立圖片的工具
@@ -126,4 +127,111 @@ export const resizeImage = (dataUrl, width, height) => {
         };
         img.src = dataUrl;
     });
+};
+
+export const generateApng = async (frames) => {
+    // frames: Array of { dataUrl, duration }
+    if (!frames || frames.length === 0) return null;
+
+    // Helper to load image and get buffer
+    const processFrame = (frame) => new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous"; // Safe-guard
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, img.width, img.height);
+            resolve({
+                buffer: imageData.data.buffer,
+                width: img.width,
+                height: img.height,
+                duration: frame.duration || 200
+            });
+        };
+        img.onerror = reject;
+        img.src = frame.dataUrl;
+    });
+
+    try {
+        const results = await Promise.all(frames.map(processFrame));
+        if (results.length === 0) return null;
+
+        // Use dimensions of the first frame
+        const width = results[0].width;
+        const height = results[0].height;
+
+        const buffers = results.map(r => r.buffer);
+        const delays = results.map(r => r.duration);
+
+        // Encode to APNG
+        // UPNG.encode(imgs, w, h, cnum, dels)
+        // cnum = 0 (full color)
+        const apngBuffer = UPNG.encode(buffers, width, height, 0, delays);
+
+        // PATCH: Set num_plays to 1 (stops after one cycle of frames)
+        // We've already duplicated frames for the loop count, so we interpret the file as a single "play".
+
+        const bytes = new Uint8Array(apngBuffer);
+        for (let i = 0; i < bytes.length - 8; i++) {
+            // Find 'acTL' signature: 0x61, 0x63, 0x54, 0x4C
+            if (bytes[i] === 0x61 && bytes[i + 1] === 0x63 && bytes[i + 2] === 0x54 && bytes[i + 3] === 0x4C) {
+                // acTL structure: [Length: 4][acTL: 4][num_frames: 4][num_plays: 4][CRC: 4]
+                // 'i' points to 'a' in acTL.
+                // num_plays is at i + 4 (num_frames) + 4 = i + 8.
+
+                // Set num_plays to 1 (Big Endian 0x00000001)
+                const playOffset = i + 8;
+                bytes[playOffset] = 0;
+                bytes[playOffset + 1] = 0;
+                bytes[playOffset + 2] = 0;
+                bytes[playOffset + 3] = 1;
+
+                // Recompute CRC for the chunk (Type + Data)
+                // Chunk data length is 8 bytes (frames + plays)
+                // Type is 4 bytes. Total 12 bytes to CRC.
+                // Start at i (Type start). Length 12.
+
+                const crcStart = i;
+                const crcLen = 12; // 4 (acTL) + 4 (frames) + 4 (plays)
+
+                const crc = calcCRC32(bytes.subarray(crcStart, crcStart + crcLen));
+
+                // Write CRC at end of chunk (i + 12)
+                const crcOffset = i + 12;
+                bytes[crcOffset] = (crc >>> 24) & 0xFF;
+                bytes[crcOffset + 1] = (crc >>> 16) & 0xFF;
+                bytes[crcOffset + 2] = (crc >>> 8) & 0xFF;
+                bytes[crcOffset + 3] = crc & 0xFF;
+
+                break; // Found and patched
+            }
+        }
+
+        const blob = new Blob([apngBuffer], { type: 'image/png' });
+        return URL.createObjectURL(blob);
+    } catch (e) {
+        console.error("APNG Generation Failed:", e);
+        return null;
+    }
+};
+
+// Simple CRC32 implementation for PNG patching
+const calcCRC32 = (buffer) => {
+    const table = new Uint32Array(256);
+    for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let k = 0; k < 8; k++) {
+            c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        }
+        table[i] = c;
+    }
+
+    let crc = -1; // 0xFFFFFFFF
+    for (let i = 0; i < buffer.length; i++) {
+        crc = (crc >>> 8) ^ table[(crc ^ buffer[i]) & 0xFF];
+    }
+    return (crc ^ -1) >>> 0;
 };

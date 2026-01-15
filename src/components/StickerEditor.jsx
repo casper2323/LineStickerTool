@@ -25,7 +25,12 @@ const StickerEditor = ({
     onDeleteWorkspace,
     onUpdateWorkspace,
     onClearWorkspace,
-    onPreviewWorkspace
+
+    onPreviewWorkspace,
+    onCollectResult,
+    collectionLimit = 40,
+    setCollectionLimit,
+    allowedCounts = [8, 16, 24, 32, 40]
 }) => {
     const [originalImage, setOriginalImage] = useState(null);
     const [slicedImages, setSlicedImages] = useState([]);
@@ -202,14 +207,14 @@ const StickerEditor = ({
                 return newWorkspace;
             });
         } else {
-            // Default: Add to list
-            const resized = await resizeImage(sticker.dataUrl, collectionSize.width, collectionSize.height);
+            // Default: Add to list (Resize to 320x270)
+            const resized = await resizeImage(sticker.dataUrl, 320, 270);
 
             setCollection(prev => {
                 // Find first empty slot
-                const emptyIndex = prev.findIndex(item => item === null);
+                const emptyIndex = prev.findIndex((item, idx) => item === null && idx < collectionLimit);
                 if (emptyIndex === -1) {
-                    alert("Collection is full! Please delete some stickers first.");
+                    alert(`Collection is full (Limit: ${collectionLimit})! Please delete some stickers or increase the limit.`);
                     return prev;
                 }
                 const newCollection = [...prev];
@@ -230,9 +235,9 @@ const StickerEditor = ({
 
             setCollection(prev => {
                 // Find first empty slot
-                const emptyIndex = prev.findIndex(item => item === null);
+                const emptyIndex = prev.findIndex((item, idx) => item === null && idx < collectionLimit);
                 if (emptyIndex === -1) {
-                    alert("Collection is full! Please delete some stickers first.");
+                    alert(`Collection is full (Limit: ${collectionLimit})! Please delete some stickers or increase the limit.`);
                     return prev;
                 }
                 const newCollection = [...prev];
@@ -273,6 +278,7 @@ const StickerEditor = ({
                             onUpdate={onUpdateWorkspace}
                             onClear={onClearWorkspace}
                             onPreview={onPreviewWorkspace}
+                            onCollectResult={onCollectResult}
                         />
                     )}
                     <StickerCollection
@@ -283,6 +289,9 @@ const StickerEditor = ({
                         setMainImage={setMainImage}
                         tabImage={tabImage}
                         setTabImage={setTabImage}
+                        limit={collectionLimit}
+                        setLimit={setCollectionLimit}
+                        allowedCounts={allowedCounts}
                     />
                 </>
             )}

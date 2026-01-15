@@ -15,8 +15,28 @@ function App() {
   const [mainImage, setMainImage] = useState(null);
   const [tabImage, setTabImage] = useState(null);
 
+  // Collection Limit State
+  const [collectionLimit, setCollectionLimit] = useState(40);
+
   // Tab State
   const [activeTab, setActiveTab] = useState('prompt'); // 'prompt' | 'editor' | 'apng-prompt' | 'apng-editor'
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    // Adjust collection limit based on tab type
+    if (tab === 'apng-editor') {
+      // APNG max is 24. If current limit > 24, reset to 24. 
+      // Or just default to 24 when switching to this tab? 
+      // Let's safe-guard:
+      if (collectionLimit > 24) setCollectionLimit(24);
+    } else if (tab === 'editor') {
+      // Static can go up to 40. We don't necessarily force it up, 
+      // but the user might have set it low. Let's leave it unless they change it, 
+      // or maybe default to 40? 
+      // The user request is about modifying the collection area to support these counts.
+      // If we switch to 'editor', we support up to 40.
+    }
+  };
 
   const handleDeleteFromCollection = (index) => {
     setCollection(prev => {
@@ -63,6 +83,32 @@ function App() {
     }
   };
 
+  const handleCollectResult = (dataUrl, isApng = false, target = 'collection') => {
+    if (target === 'main') {
+      setMainImage({
+        id: Date.now(),
+        dataUrl: dataUrl,
+        isApng: isApng
+      });
+      return;
+    }
+
+    setCollection(prev => {
+      const emptyIndex = prev.findIndex((item, idx) => item === null && idx < collectionLimit);
+      if (emptyIndex === -1) {
+        alert(`Collection is full (Limit: ${collectionLimit})! Please delete some stickers first.`);
+        return prev;
+      }
+      const newCollection = [...prev];
+      newCollection[emptyIndex] = {
+        id: Date.now(),
+        dataUrl: dataUrl,
+        isApng: isApng
+      };
+      return newCollection;
+    });
+  };
+
   return (
     <Layout>
       {/* Tab Navigation */}
@@ -72,7 +118,7 @@ function App() {
             ? 'text-white border-b-2 border-primary-500'
             : 'text-gray-400 hover:text-gray-200'
             }`}
-          onClick={() => setActiveTab('prompt')}
+          onClick={() => handleTabChange('prompt')}
         >
           Prompt Generator
         </button>
@@ -81,7 +127,7 @@ function App() {
             ? 'text-white border-b-2 border-primary-500'
             : 'text-gray-400 hover:text-gray-200'
             }`}
-          onClick={() => setActiveTab('editor')}
+          onClick={() => handleTabChange('editor')}
         >
           Sticker Editor
         </button>
@@ -90,7 +136,7 @@ function App() {
             ? 'text-white border-b-2 border-purple-500'
             : 'text-gray-400 hover:text-gray-200'
             }`}
-          onClick={() => setActiveTab('apng-prompt')}
+          onClick={() => handleTabChange('apng-prompt')}
         >
           APNG Prompt
         </button>
@@ -99,7 +145,7 @@ function App() {
             ? 'text-white border-b-2 border-green-500'
             : 'text-gray-400 hover:text-gray-200'
             }`}
-          onClick={() => setActiveTab('apng-editor')}
+          onClick={() => handleTabChange('apng-editor')}
         >
           APNG Editor
         </button>
@@ -132,6 +178,10 @@ function App() {
               onUpdateWorkspace={handleUpdateWorkspace}
               onClearWorkspace={handleClearWorkspace}
               onPreviewWorkspace={handlePreviewWorkspace}
+              onCollectResult={handleCollectResult}
+              collectionLimit={collectionLimit}
+              setCollectionLimit={setCollectionLimit}
+              allowedCounts={[8, 16, 24, 32, 40]}
             />
           </div>
         </div>
@@ -163,6 +213,10 @@ function App() {
               onUpdateWorkspace={handleUpdateWorkspace}
               onClearWorkspace={handleClearWorkspace}
               onPreviewWorkspace={handlePreviewWorkspace}
+              onCollectResult={handleCollectResult}
+              collectionLimit={collectionLimit}
+              setCollectionLimit={setCollectionLimit}
+              allowedCounts={[8, 16, 24]}
             />
           </div>
         </div>

@@ -4,8 +4,9 @@ import { Copy, Check, Sparkles } from 'lucide-react';
 
 const ApngPromptGenerator = () => {
     const [generatedPrompt, setGeneratedPrompt] = useState(
-        `將我上傳的圖片，生成line動態貼圖的分格圖 3x3 九宮格，主角必須維持在中心，文字不要有任何變動，
-背景色採用**PURE GREEN (#00FF00)**，單張尺寸 320 x 270， 總尺寸960 x 810 px。`
+        `將我上傳的圖片，生成line動態貼圖的分格圖 3x3 九宮格，主角位置維持在相同的位置，文字不要有任何變動，
+背景色採用**PURE GREEN (#00FF00)**，單張尺寸 320 x 270， 總尺寸960 x 810 px。
+生成一連串的圖片，保持原有圖片，只有手小幅度移動，黑色眼珠小幅度轉看不同地方。`
     );
     const [copied, setCopied] = useState(false);
 
