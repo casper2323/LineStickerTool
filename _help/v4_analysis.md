@@ -67,3 +67,55 @@ To implement this in our React application:
 **Conclusion / 結論**:
 v4 will focus on **Dynamics (Animation)**. The core added value is the **APNG Generator** that works fully client-side.
 v4 將專注於 **動態 (動畫)**。核心附加價值在於完全前端運作的 **APNG 生成器**。
+
+---
+
+## Appendix: Archived Initial v4 Plan (Video Mode) / 附錄：已存檔的初始 v4 計畫 (影片模式)
+*This section contains the initial plan which included Video Mode. It is preserved for reference.*
+*本節包含初始的 v4 計畫 (含影片模式)，保留供參考。*
+
+### UML Sequence Diagram (Archived) / 循序圖 (存檔)
+```mermaid
+sequenceDiagram
+    participant User as User<br/>使用者
+    participant UI as React UI (App)<br/>應用介面
+    participant Video as Video Element<br/>影片元件
+    participant Canvas as Canvas API<br/>繪圖 API
+    participant Worker as BG Removal Worker<br/>去背工作者
+    participant Encoder as APNG Encoder<br/>編碼器 (UPNG.js)
+
+    Note over User, UI: 1. Video Input Phase / 影片輸入階段
+    User->>UI: Upload Video File / 上傳影片
+    UI->>Video: Load File URL / 載入檔案
+
+    Note over User, UI: 2. Range Selection / 選取範圍
+    User->>UI: Select Start/End Time & FPS / 選擇起訖時間與幀率
+    UI->>UI: Calculate Frame Count (5-20 frames) / 計算幀數
+
+    Note over UI, Worker: 3. Capture & Process Phase / 截取與處理階段
+    User->>UI: Click "Generate" / 點擊生成
+    activate UI
+    loop For Each Frame / 針對每一幀
+        UI->>Video: Seek to Time(t) / 跳轉時間
+        Video-->>UI: Seeked / 跳轉完成
+        UI->>Canvas: Draw Video Frame / 繪製影格
+        UI->>Canvas: Get ImageData / 取得像素資料
+        UI->>Worker: PostMessage(ImageData, Settings) / 發送處理請求
+        activate Worker
+        Worker-->>Worker: Remove Background / 移除背景
+        Worker-->>UI: Return Processed ImageData / 回傳處理後資料
+        deactivate Worker
+        UI->>UI: Store Frame in State / 儲存影格狀態
+    end
+
+    Note over UI, Encoder: 4. Encoding Phase / 編碼階段
+    UI->>Encoder: Send All Frames + Speed + Loop Count / 發送影格與參數
+    activate Encoder
+    Encoder-->>Encoder: Encode to APNG Blob / 編碼為 APNG
+    Encoder-->>UI: Return APNG Blob / 回傳 APNG 檔案
+    deactivate Encoder
+    deactivate UI
+
+    Note over User, UI: 5. Download / 下載
+    UI-->>User: Trigger Download (.png) / 觸發下載
+```

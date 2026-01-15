@@ -6,7 +6,7 @@
 - [x] **Phase 2: Prompt Generator / Prompt 生成器** <!-- id: 3 -->
     - [x] Define Scenes & Styles Data / 定義情境與風格資料 <!-- id: 4 -->
     - [x] Build Generator UI / 建構生成器 UI <!-- id: 5 -->
-- [x] **Phase 3: Image Processing (v3) / 圖片處理 (v3)** <!-- id: 6 -->
+- [/] **Phase 3: Image Processing (v3) / 圖片處理 (v3)** <!-- id: 6 -->
     - [x] Implement Image Uploader / 實作圖片上傳 <!-- id: 7 -->
     - [x] Implement Canvas Slicing / 實作 Canvas 切片 <!-- id: 8 -->
     - [x] Implement Web Worker for BG Removal / 實作去背 Web Worker <!-- id: 9 -->
@@ -14,14 +14,16 @@
     - [x] Implement Zip Download / 實作 Zip 下載 <!-- id: 11 -->
     - [x] Final UI Polish / 最終 UI 優化 <!-- id: 12 -->
 - [ ] **Phase 5: v4 Dynamic Stickers (APNG) / v4 動態貼圖 (APNG)** <!-- id: 13 -->
-    - [ ] **Infrastructure / 基礎設施** <!-- id: 14 -->
-        - [ ] Install & Configure UPNG.js / 安裝設定 UPNG.js <!-- id: 15 -->
-        - [ ] Upgrade Image Processor Worker for Frames / 升級 Worker 支援影格處理 <!-- id: 16 -->
-    - [ ] **Video Mode / 影片模式** <!-- id: 17 -->
-        - [ ] Implement Video Input & Preview / 實作影片輸入與預覽 <!-- id: 18 -->
-        - [ ] Implement Frame Extraction Logic / 實作影格截取邏輯 <!-- id: 19 -->
-    - [ ] **Grid Mode / 九宮格模式** <!-- id: 20 -->
-        - [ ] Implement Grid-to-Sequence Logic / 實作九宮格轉序列邏輯 <!-- id: 21 -->
-    - [ ] **Export / 匯出** <!-- id: 22 -->
-        - [ ] Integrate APNG Encoding / 整合 APNG 編碼 <!-- id: 23 -->
-        - [ ] Verify LINE Specifications / 驗證 LINE 規格符合性 <!-- id: 24 -->
+    - [x] **Infrastructure / 基礎設施** <!-- id: 14 -->
+        - [x] Install & Configure UPNG.js / 安裝設定 UPNG.js <!-- id: 15 -->
+    - [x] **Tab 1: Dynamic Prompt / 動態 Prompt 頁籤** <!-- id: 16 -->
+        - [x] Create Dynamic Prompt Input UI / 建立 Prompt 輸入介面 <!-- id: 17 -->
+        - [x] Implement Specific Prompt Logic (Grid + Green Screen) / 實作特定 Prompt 邏輯 <!-- id: 18 -->
+    - [x] **Tab 2: APNG Maker / APNG 製作頁籤** <!-- id: 20 -->
+        - [x] Implement 4x3 Grid Uploader & Auto-Slicer / 實作 4x3 上傳與自動切割 <!-- id: 21 -->
+        - [x] Build Sequence Editor (Speed, Loops, Frames) / 建構序列編輯器 <!-- id: 22 -->
+        - [x] Implement Live APNG Preview / 實作即時 APNG 預覽 <!-- id: 23 -->
+    - [x] **Export & Collection / 匯出與收藏** <!-- id: 22 -->
+        - [x] Manage Sticker Collection State / 管理貼圖收藏狀態 <!-- id: 24 -->
+        - [x] Generate Resized Assets (Main 240, Tab 96) / 生成縮圖資產 <!-- id: 25 -->
+        - [x] Implement Download (Zip & Single) / 實作下載功能 <!-- id: 26 -->

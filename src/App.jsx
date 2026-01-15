@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Layout from './components/Layout';
 import PromptGenerator from './components/PromptGenerator';
+import DynamicPromptGenerator from './components/DynamicPromptGenerator';
+import APNGMaker from './components/APNGMaker';
 import ImageUploader from './components/ImageUploader';
 import StickerGrid from './components/StickerGrid';
 import StickerCollection from './components/StickerCollection';
@@ -25,8 +27,26 @@ function App() {
   const [mainImage, setMainImage] = useState(null);
   const [tabImage, setTabImage] = useState(null);
 
-  // Collection Mode
-  const [collectMode, setCollectMode] = useState('stickers'); // 'stickers' | 'main' | 'tab'
+  // --- APNG Collection State ---
+  const [apngCollection, setApngCollection] = useState(Array(40).fill(null));
+  const [apngMainImage, setApngMainImage] = useState(null);
+  const [apngTabImage, setApngTabImage] = useState(null);
+
+  const handleApngDelete = (index) => {
+    setApngCollection(prev => {
+      const newCollection = [...prev];
+      newCollection[index] = null;
+      return newCollection;
+    });
+  };
+
+  const handleApngClearAll = () => {
+    if (window.confirm("Clear all APNG stickers?")) {
+      setApngCollection(Array(40).fill(null));
+      setApngMainImage(null);
+      setApngTabImage(null);
+    }
+  };
 
   // Settings State
   const [settings, setSettings] = useState({
@@ -239,6 +259,24 @@ function App() {
           Prompt Generator
         </button>
         <button
+          className={`px-6 py-3 font-medium text-sm transition-colors relative ${activeTab === 'dynamic-prompt'
+            ? 'text-white border-b-2 border-purple-500'
+            : 'text-gray-400 hover:text-gray-200'
+            }`}
+          onClick={() => setActiveTab('dynamic-prompt')}
+        >
+          APNG Dynamic Prompt
+        </button>
+        <button
+          className={`px-6 py-3 font-medium text-sm transition-colors relative ${activeTab === 'apng-maker'
+            ? 'text-white border-b-2 border-line-green'
+            : 'text-gray-400 hover:text-gray-200'
+            }`}
+          onClick={() => setActiveTab('apng-maker')}
+        >
+          APNG Maker
+        </button>
+        <button
           className={`px-6 py-3 font-medium text-sm transition-colors relative ${activeTab === 'editor'
             ? 'text-white border-b-2 border-primary-500'
             : 'text-gray-400 hover:text-gray-200'
@@ -257,7 +295,30 @@ function App() {
           </div>
         </div>
 
-        {/* Right Content: Image Processing */}
+        {/* Dynamic Prompt Generator */}
+        <div className={activeTab === 'dynamic-prompt' ? 'block' : 'hidden'}>
+          <div className="max-w-4xl mx-auto h-full">
+            <DynamicPromptGenerator />
+          </div>
+        </div>
+
+        {/* APNG Maker */}
+        <div className={activeTab === 'apng-maker' ? 'block' : 'hidden'}>
+          <div className="max-w-6xl mx-auto h-full">
+            <APNGMaker
+              collection={apngCollection}
+              setCollection={setApngCollection}
+              mainImage={apngMainImage}
+              setMainImage={setApngMainImage}
+              tabImage={apngTabImage}
+              setTabImage={setApngTabImage}
+              onDelete={handleApngDelete}
+              onClearAll={handleApngClearAll}
+            />
+          </div>
+        </div>
+
+        {/* Right Content: Image Processing (Legacy v3) */}
         <div className={activeTab === 'editor' ? 'block' : 'hidden'}>
           <div className="space-y-6">
             <ImageUploader onUpload={handleImageUpload} isProcessing={isProcessing} />
