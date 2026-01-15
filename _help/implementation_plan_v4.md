@@ -20,47 +20,47 @@ The following diagram illustrates the **Video Mode** workflow, which is the most
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant UI as React UI (App)
-    participant Video as Hidden Video Element
-    participant Canvas as Canvas API
-    participant Worker as BG Removal Worker
-    participant Encoder as APNG Encoder (UPNG.js)
+    participant User as User<br/>使用者
+    participant UI as React UI (App)<br/>應用介面
+    participant Video as Video Element<br/>影片元件
+    participant Canvas as Canvas API<br/>繪圖 API
+    participant Worker as BG Removal Worker<br/>去背工作者
+    participant Encoder as APNG Encoder<br/>編碼器 (UPNG.js)
 
-    Note over User, UI: 1. Video Input Phase
-    User->>UI: Upload Video File
-    UI->>Video: Load File URL
+    Note over User, UI: 1. Video Input Phase / 影片輸入階段
+    User->>UI: Upload Video File / 上傳影片
+    UI->>Video: Load File URL / 載入檔案
 
-    Note over User, UI: 2. Range Selection
-    User->>UI: Select Start/End Time & FPS
-    UI->>UI: Calculate Frame Count (5-20 frames)
+    Note over User, UI: 2. Range Selection / 選取範圍
+    User->>UI: Select Start/End Time & FPS / 選擇起訖時間與幀率
+    UI->>UI: Calculate Frame Count (5-20 frames) / 計算幀數
 
-    Note over UI, Worker: 3. Capture & Process Phase
-    User->>UI: Click "Generate"
+    Note over UI, Worker: 3. Capture & Process Phase / 截取與處理階段
+    User->>UI: Click "Generate" / 點擊生成
     activate UI
-    loop For Each Frame
-        UI->>Video: Seek to Time(t)
-        Video-->>UI: Seeked
-        UI->>Canvas: Draw Video Frame
-        UI->>Canvas: Get ImageData
-        UI->>Worker: PostMessage(ImageData, Settings)
+    loop For Each Frame / 針對每一幀
+        UI->>Video: Seek to Time(t) / 跳轉時間
+        Video-->>UI: Seeked / 跳轉完成
+        UI->>Canvas: Draw Video Frame / 繪製影格
+        UI->>Canvas: Get ImageData / 取得像素資料
+        UI->>Worker: PostMessage(ImageData, Settings) / 發送處理請求
         activate Worker
-        Worker-->>Worker: Remove Background (Pixel Math)
-        Worker-->>UI: Return Processed ImageData
+        Worker-->>Worker: Remove Background / 移除背景
+        Worker-->>UI: Return Processed ImageData / 回傳處理後資料
         deactivate Worker
-        UI->>UI: Store Frame in State
+        UI->>UI: Store Frame in State / 儲存影格狀態
     end
 
-    Note over UI, Encoder: 4. Encoding Phase
-    UI->>Encoder: Send All Frames + Speed + Loop Count
+    Note over UI, Encoder: 4. Encoding Phase / 編碼階段
+    UI->>Encoder: Send All Frames + Speed + Loop Count / 發送影格與參數
     activate Encoder
-    Encoder-->>Encoder: Encode to APNG Blob
-    Encoder-->>UI: Return APNG Blob
+    Encoder-->>Encoder: Encode to APNG Blob / 編碼為 APNG
+    Encoder-->>UI: Return APNG Blob / 回傳 APNG 檔案
     deactivate Encoder
     deactivate UI
 
-    Note over User, UI: 5. Download
-    UI-->>User: Trigger Download (.png)
+    Note over User, UI: 5. Download / 下載
+    UI-->>User: Trigger Download (.png) / 觸發下載
 ```
 
 ## Architecture Changes / 架構變更
