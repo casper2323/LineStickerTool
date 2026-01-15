@@ -6,10 +6,22 @@
 - [x] **Phase 2: Prompt Generator / Prompt 生成器** <!-- id: 3 -->
     - [x] Define Scenes & Styles Data / 定義情境與風格資料 <!-- id: 4 -->
     - [x] Build Generator UI / 建構生成器 UI <!-- id: 5 -->
-- [/] **Phase 3: Image Processing / 圖片處理** <!-- id: 6 -->
+- [x] **Phase 3: Image Processing (v3) / 圖片處理 (v3)** <!-- id: 6 -->
     - [x] Implement Image Uploader / 實作圖片上傳 <!-- id: 7 -->
     - [x] Implement Canvas Slicing / 實作 Canvas 切片 <!-- id: 8 -->
     - [x] Implement Web Worker for BG Removal / 實作去背 Web Worker <!-- id: 9 -->
-- [x] **Phase 4: Export & Polish / 匯出與優化** <!-- id: 10 -->
+- [x] **Phase 4: Export & Polish (v3) / 匯出與優化 (v3)** <!-- id: 10 -->
     - [x] Implement Zip Download / 實作 Zip 下載 <!-- id: 11 -->
     - [x] Final UI Polish / 最終 UI 優化 <!-- id: 12 -->
+- [ ] **Phase 5: v4 Dynamic Stickers (APNG) / v4 動態貼圖 (APNG)** <!-- id: 13 -->
+    - [ ] **Infrastructure / 基礎設施** <!-- id: 14 -->
+        - [ ] Install & Configure UPNG.js / 安裝設定 UPNG.js <!-- id: 15 -->
+        - [ ] Upgrade Image Processor Worker for Frames / 升級 Worker 支援影格處理 <!-- id: 16 -->
+    - [ ] **Video Mode / 影片模式** <!-- id: 17 -->
+        - [ ] Implement Video Input & Preview / 實作影片輸入與預覽 <!-- id: 18 -->
+        - [ ] Implement Frame Extraction Logic / 實作影格截取邏輯 <!-- id: 19 -->
+    - [ ] **Grid Mode / 九宮格模式** <!-- id: 20 -->
+        - [ ] Implement Grid-to-Sequence Logic / 實作九宮格轉序列邏輯 <!-- id: 21 -->
+    - [ ] **Export / 匯出** <!-- id: 22 -->
+        - [ ] Integrate APNG Encoding / 整合 APNG 編碼 <!-- id: 23 -->
+        - [ ] Verify LINE Specifications / 驗證 LINE 規格符合性 <!-- id: 24 -->
